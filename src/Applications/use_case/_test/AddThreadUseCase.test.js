@@ -4,7 +4,7 @@ const CreateThread = require('../../../Domains/threads/entities/CreateThread');
 const ThreadRepository = require('../../../Domains/threads/ThreadRepository');
 
 describe('AddThreadUseCase', () => {
-  it('should orchestrating the add thread function correctly', async () => {
+  it('should orchestrating the add thread use case correctly', async () => {
     // Arrange
     const threadUseCasePayload = {
       title: 'sebuah thread',

@@ -64,7 +64,7 @@ describe('AddReplyUseCase', () => {
       .rejects.toThrow(NotFoundError);
   });
 
-  it('should orchestrating the add reply function correctly', async () => {
+  it('should orchestrating the add reply use case correctly', async () => {
     // Arrange
     const replyUseCasePayload = {
       content: 'sebuah balasan',
