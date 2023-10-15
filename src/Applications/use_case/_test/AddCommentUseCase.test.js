@@ -32,7 +32,7 @@ describe('AddCommentUseCase', () => {
       .rejects.toThrow(NotFoundError);
   });
 
-  it('should orchestrating the add comment function correctly', async () => {
+  it('should orchestrating the add comment use case correctly', async () => {
     // Arrange
     const commentUseCasePayload = {
       content: 'ini sebuah komentar',

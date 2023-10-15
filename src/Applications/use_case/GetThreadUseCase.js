@@ -4,10 +4,13 @@ const DetailReply = require('../../Domains/replies/entities/DetailReply');
 const DetailThread = require('../../Domains/threads/entities/DetailThread');
 
 class GetThreadUseCase {
-  constructor({ threadRepository, commentRepository, replyRepository }) {
+  constructor({
+    threadRepository, commentRepository, replyRepository, likeRepository
+  }) {
     this._threadRepository = threadRepository;
     this._commentRepository = commentRepository;
     this._replyRepository = replyRepository;
+    this._likeRepository = likeRepository;
   }
 
   async execute(useCaseParams) {
@@ -18,16 +21,15 @@ class GetThreadUseCase {
     const comments = await this._commentRepository.getCommentByThreadId(threadId);
     const replies = await this._replyRepository.getReplyByThreadId(threadId);
 
-    const structuredComment = this._getRepliesForComment(comments, replies);
+    const detailThread = new DetailThread({ ...thread, comments });
+    detailThread.comments = this._getCommentReplies(comments, replies);
+    detailThread.comments = await this._getCommentLikeCount(detailThread.comments);
 
-    return new DetailThread({
-      ...thread,
-      comments: structuredComment,
-    });
+    return detailThread;
   }
 
-  _getRepliesForComment(comments, replies) {
-    const structuredComments = comments.map((comment) => {
+  _getCommentReplies(comments, replies) {
+    return comments.map((comment) => {
       const detailComment = new DetailComment({ ...comment });
       detailComment.replies = replies
         .filter((reply) => reply.commentId === comment.id && !comment.isDeleted)
@@ -40,9 +42,20 @@ class GetThreadUseCase {
         detailComment.content = '**komentar telah dihapus**';
         detailComment.replies = [];
       }
+
       return detailComment;
     });
-    return structuredComments;
+  }
+
+  async _getCommentLikeCount(comments) {
+    const commentLikes = await Promise.all(
+      comments.map(async (comment) => {
+        comment.likeCount = await this._likeRepository.getLikesByCommentId(comment.id);
+        return comment;
+      })
+    );
+
+    return commentLikes;
   }
 }
 
