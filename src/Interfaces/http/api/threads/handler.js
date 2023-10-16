@@ -1,6 +1,7 @@
 const autoBind = require('auto-bind');
 const AddThreadUseCase = require('../../../../Applications/use_case/AddThreadUseCase');
 const GetThreadUseCase = require('../../../../Applications/use_case/GetThreadUseCase');
+const DeleteThreadUseCase = require('../../../../Applications/use_case/DeleteThreadUseCase');
 
 class ThreadsHandler {
   constructor(container) {
@@ -34,6 +35,17 @@ class ThreadsHandler {
       data: {
         thread,
       },
+    };
+  }
+
+  async deleteThreadByIdHandler(request) {
+    const { id: owner } = request.auth.credentials;
+    const deleteThreadUseCase = this._container.getInstance(DeleteThreadUseCase.name);
+    await deleteThreadUseCase.execute(request.params, owner);
+
+    return {
+      status: 'success',
+      message: 'Berhasil menghapus thread',
     };
   }
 }
