@@ -1,3 +1,4 @@
+const AuthorizationError = require('../../Commons/exceptions/AuthorizationError');
 const NotFoundError = require('../../Commons/exceptions/NotFoundError');
 const ThreadRepository = require('../../Domains/threads/ThreadRepository');
 const AddedThread = require('../../Domains/threads/entities/AddedThread');
@@ -35,6 +36,19 @@ class ThreadRepositoryPostgres extends ThreadRepository {
     }
   }
 
+  async verifyThreadOwner(threadId, owner) {
+    const query = {
+      text: 'SELECT id FROM threads WHERE id = $1 AND owner = $2',
+      values: [threadId, owner],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rowCount) {
+      throw new AuthorizationError('anda bukan pemilik thread');
+    }
+  }
+
   async getThreadById(id) {
     const query = {
       text: `
@@ -54,6 +68,15 @@ class ThreadRepositoryPostgres extends ThreadRepository {
     }
 
     return result.rows[0];
+  }
+
+  async deleteThreadById(threadId) {
+    const query = {
+      text: 'DELETE FROM threads WHERE id = $1',
+      values: [threadId],
+    };
+
+    await this._pool.query(query);
   }
 }
 

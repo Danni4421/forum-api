@@ -251,4 +251,92 @@ describe('/threads endpoint', () => {
       expect(thread.comments).toBeDefined();
     });
   });
+
+  describe('when DELETE /threads', () => {
+    it('should response 404 when thread is not exists', async () => {
+      // Arrange
+      const server = await createServer(container);
+      const { accessToken } = await server
+        .inject({
+          method: 'POST',
+          url: '/authentications',
+          payload: {
+            username: 'ajhmdni',
+            password: 'super_secret',
+          },
+        })
+        .then((response) => {
+          const responseJson = JSON.parse(response.payload);
+          return responseJson.data;
+        });
+
+      // Action
+      const response = await server.inject({
+        method: 'DELETE',
+        url: '/threads/xxxx',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      // Assert
+      const responseJson = JSON.parse(response.payload);
+      expect(response.statusCode).toEqual(404);
+      expect(responseJson.status).toEqual('fail');
+    });
+
+    it('should response 200 and theard is deleted', async () => {
+      // Arrange
+      const threadPayload = {
+        title: 'sebuah thread',
+        body: 'content sebuah thread',
+      };
+      const server = await createServer(container);
+      const { accessToken } = await server
+        .inject({
+          method: 'POST',
+          url: '/authentications',
+          payload: {
+            username: 'ajhmdni',
+            password: 'super_secret',
+          },
+        })
+        .then((response) => {
+          const responseJson = JSON.parse(response.payload);
+          return responseJson.data;
+        });
+
+      const { addedThread: { id: threadId } } = await server.inject({
+        method: 'POST',
+        url: '/threads',
+        payload: threadPayload,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        }
+      }).then((response) => {
+        const responseJson = JSON.parse(response.payload);
+        return responseJson.data;
+      });
+
+      // Action
+      const response = await server.inject({
+        method: 'DELETE',
+        url: `/threads/${threadId}`,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      const getThreadResponse = await server.inject({
+        method: 'GET',
+        url: `/threads/${threadId}`,
+      });
+
+      // Assert
+      const responseJson = JSON.parse(response.payload);
+      expect(response.statusCode).toEqual(200);
+      expect(responseJson.status).toEqual('success');
+      expect(getThreadResponse.statusCode).toEqual(404);
+    });
+  });
 });

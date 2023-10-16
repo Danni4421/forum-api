@@ -37,6 +37,15 @@ class ReplyRepositoryPostgres extends ReplyRepository {
     }
   }
 
+  async deleteReplyPermanentlyById(replyId) {
+    const query = {
+      text: 'DELETE FROM replies WHERE id = $1',
+      values: [replyId],
+    };
+
+    await this._pool.query(query);
+  }
+
   async getReplyByThreadId(threadId) {
     const query = {
       text: `

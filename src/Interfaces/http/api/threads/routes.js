@@ -11,7 +11,7 @@ const routes = (handler) => [
     method: 'GET',
     path: '/threads/{threadId}',
     handler: handler.getThreadByIdHandler,
-  },
+  }
 ];
 
 module.exports = routes;

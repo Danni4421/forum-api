@@ -214,6 +214,30 @@ describe('CommentRepositoryPostgres', () => {
         .resolves.not.toThrow(NotFoundError);
     });
 
+    describe('deleteCommentPermanentlyById function', () => {
+      it('should have no comment when permanently deleted', async () => {
+        // Arrange
+        const createComment = new CreateComment({
+          content: 'comment sebuah thread',
+          threadId,
+          owner: userId,
+        });
+        const fakeIdGenerator = () => '123';
+
+        const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, fakeIdGenerator, FakeDateGenerator);
+        await commentRepositoryPostgres.addComment(createComment);
+
+        // Action
+        const commentBeforeDelete = await CommentsTableTestHelper.findComments(threadId);
+        await commentRepositoryPostgres.deleteCommentPermanentlyById('comment-123');
+        const commentAfterDelete = await CommentsTableTestHelper.findComments(threadId);
+
+        // Assert
+        expect(commentBeforeDelete).toHaveLength(1);
+        expect(commentAfterDelete).toHaveLength(0);
+      });
+    });
+
     describe('verifyCommentOwner function', () => {
       it('should throw error when user is not the comment owner', async () => {
         // Arrange

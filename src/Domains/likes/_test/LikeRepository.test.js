@@ -12,6 +12,8 @@ describe('LikesRepository Interface', () => {
       .rejects.toThrowError('LIKE_REPOSITORY.METHOD_NOT_IMPLEMENTED');
     await expect(likesRepository.deleteLike('', ''))
       .rejects.toThrowError('LIKE_REPOSITORY.METHOD_NOT_IMPLEMENTED');
+    await expect(likesRepository.deleteLikesByCommentId)
+      .rejects.toThrowError('LIKE_REPOSITORY.METHOD_NOT_IMPLEMENTED');
     await expect(likesRepository.checkLikeIsExists('', ''))
       .rejects.toThrowError('LIKE_REPOSITORY.METHOD_NOT_IMPLEMENTED');
   });
