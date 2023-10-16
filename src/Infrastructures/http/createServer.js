@@ -60,8 +60,8 @@ const createServer = async (container) => {
     },
     {
       plugin: likes,
-      options: { container }
-    }
+      options: { container },
+    },
   ]);
 
   server.ext('onPreResponse', (request, h) => {

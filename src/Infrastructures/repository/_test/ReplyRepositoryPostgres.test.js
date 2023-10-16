@@ -147,6 +147,32 @@ describe('ReplyRepositoryPostgres', () => {
     });
   });
 
+  describe('deleteReplyPermanentlyById function', () => {
+    it('should have no reply when permanently deleted', async () => {
+      // Arrange
+      /** add reply */
+      const createReply = new CreateReply({
+        commentId: 'comment-123',
+        content: 'sebuah balasan',
+        owner: 'user-234',
+      });
+
+      const fakeIdGenerator = () => '123';
+
+      const replyRepositoryPostgres = new ReplyRepositoryPostgres(pool, fakeIdGenerator, FakeDateGenerator);
+
+      // Action
+      const { id } = await replyRepositoryPostgres.addReply(createReply);
+      const repliesBeforeDelete = await RepliesTableTestHelper.findReplies('comment-123');
+      await replyRepositoryPostgres.deleteReplyPermanentlyById(id);
+      const repliesAfterDelete = await RepliesTableTestHelper.findReplies('comment-123');
+
+      // Assert
+      expect(repliesBeforeDelete).toHaveLength(1);
+      expect(repliesAfterDelete).toHaveLength(0);
+    });
+  });
+
   describe('getReplyByThreadId function', () => {
     it('should persist get reply by thread id and return replies', async () => {
       // Arrange

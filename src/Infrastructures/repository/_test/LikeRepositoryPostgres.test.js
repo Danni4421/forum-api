@@ -148,4 +148,28 @@ describe('LikeRepositoryPostgres', () => {
       expect(getLikeAfterDeleted).toEqual(0);
     });
   });
+
+  describe('deleteLikesByCommentId function', () => {
+    it('should persist delete likes by comment id function correctly', async () => {
+      // Arrange
+      const addLikePayload = new AddLike({
+        commentId: 'comment-123',
+        owner: 'user-123',
+      });
+      const fakeIdGenerator = () => '123';
+      const likeRepositoryPostgres = new LikeRepositoryPostgres(pool, fakeIdGenerator);
+
+      // Action
+      await likeRepositoryPostgres.addLike(addLikePayload);
+      const getLikeBeforeDeleted = await likeRepositoryPostgres
+        .getLikesByCommentId('comment-123');
+      await likeRepositoryPostgres.deleteLikesByCommentId('comment-123');
+      const getLikeAfterDeleted = await likeRepositoryPostgres
+        .getLikesByCommentId('comment-123');
+
+      // Assert
+      expect(getLikeBeforeDeleted).toEqual(1);
+      expect(getLikeAfterDeleted).toEqual(0);
+    });
+  });
 });

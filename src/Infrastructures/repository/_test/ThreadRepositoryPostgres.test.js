@@ -6,6 +6,7 @@ const pool = require('../../database/postgres/pool');
 const UsersTableTestHelper = require('../../../../tests/UsersTableTestHelper');
 const ThreadsTableTestHelper = require('../../../../tests/ThreadsTableTestHelper');
 const NotFoundError = require('../../../Commons/exceptions/NotFoundError');
+const AuthorizationError = require('../../../Commons/exceptions/AuthorizationError');
 
 describe('ThreadRepositoryPostgres', () => {
   afterEach(async () => {
@@ -106,6 +107,46 @@ describe('ThreadRepositoryPostgres', () => {
     });
   });
 
+  describe('verifyThreadOwner function', () => {
+    it('should throw error when user is not the owner of the thread', async () => {
+      // Arrange
+      const createThread = new CreateThread({
+        title: 'Clean Architecture',
+        body: 'clean architecture is the best',
+        owner: 'user-123',
+      });
+      const fakeIdGenerator = () => '123';
+
+      const threadRepositoryPostgres = new ThreadRepositoryPostgres(pool, fakeIdGenerator, FakeDateGenerator);
+
+      // Action
+      const { id: threadId } = await threadRepositoryPostgres.addThread(createThread);
+
+      // Assert
+      await expect(threadRepositoryPostgres.verifyThreadOwner(threadId, 'invalidOwner'))
+        .rejects.toThrow(AuthorizationError);
+    });
+
+    it('should not throw error when user is the owner of the thread', async () => {
+      // Arrange
+      const createThread = new CreateThread({
+        title: 'Clean Architecture',
+        body: 'clean architecture is the best',
+        owner: 'user-123',
+      });
+      const fakeIdGenerator = () => '123';
+
+      const threadRepositoryPostgres = new ThreadRepositoryPostgres(pool, fakeIdGenerator, FakeDateGenerator);
+
+      // Action
+      const { id: threadId } = await threadRepositoryPostgres.addThread(createThread);
+
+      // Assert
+      await expect(threadRepositoryPostgres.verifyThreadOwner(threadId, 'user-123'))
+        .resolves.not.toThrow(AuthorizationError);
+    });
+  });
+
   describe('getThreadById function', () => {
     let thread;
 
@@ -148,6 +189,30 @@ describe('ThreadRepositoryPostgres', () => {
       expect(detailThread.title).toEqual(thread.title);
       expect(detailThread.body).toEqual('isi sebuah thread');
       expect(detailThread.username).toEqual('ajhmdni');
+    });
+  });
+
+  describe('deleteThreadById function', () => {
+    it('should have no thread when permanently deleted', async () => {
+      // Arrange
+      const createThread = new CreateThread({
+        title: 'sebuah thread',
+        body: 'isi sebuah thread',
+        owner: 'user-123',
+      });
+      const fakeIdGenerator = () => '123';
+
+      const threadRepositoryPostgres = new ThreadRepositoryPostgres(pool, fakeIdGenerator, FakeDateGenerator);
+
+      // Action
+      const { id } = await threadRepositoryPostgres.addThread(createThread);
+      const threadBeforeDelete = await ThreadsTableTestHelper.findThreadById(id);
+      await threadRepositoryPostgres.deleteThreadById(id);
+      const threadAfterDelete = await ThreadsTableTestHelper.findThreadById(id);
+
+      // Assert
+      expect(threadBeforeDelete).toHaveLength(1);
+      expect(threadAfterDelete).toHaveLength(0);
     });
   });
 });

@@ -1,5 +1,8 @@
-class LikeRepositoryPostgres {
+const LikeRepository = require('../../Domains/likes/LikeRepository');
+
+class LikeRepositoryPostgres extends LikeRepository {
   constructor(pool, idGenerator) {
+    super();
     this._pool = pool;
     this._idGenerator = idGenerator;
   }
@@ -38,6 +41,15 @@ class LikeRepositoryPostgres {
     const query = {
       text: 'DELETE FROM likes WHERE comment_id = $1 AND owner = $2',
       values: [commentId, owner],
+    };
+
+    await this._pool.query(query);
+  }
+
+  async deleteLikesByCommentId(commentId) {
+    const query = {
+      text: 'DELETE FROM likes WHERE comment_id = $1',
+      values: [commentId],
     };
 
     await this._pool.query(query);

@@ -100,6 +100,15 @@ class CommentRepositoryPostgres extends CommentRepository {
       throw new NotFoundError('gagal menghapus komentar, id tidak ditemukan');
     }
   }
+
+  async deleteCommentPermanentlyById(commentId) {
+    const query = {
+      text: 'DELETE FROM comments WHERE id = $1',
+      values: [commentId],
+    };
+
+    await this._pool.query(query);
+  }
 }
 
 module.exports = CommentRepositoryPostgres;
